@@ -34,6 +34,11 @@ REGISTRY_ENTRIES_OUTPUT=$(go run test/check_registry/check_registry.go)
 ENTRIES_PASSED=0
 ENTRIES_FAILED=0
 
+# Declare a map of similar devfile starter projects to ignore errors for
+declare -A IGNORED_SIMILAR_DEVFILES=(
+    ["https://github.com/devfile-samples/nodejs-mongodb-sample"]="nodejs"
+)
+
 for entry in $(echo $REGISTRY_ENTRIES_OUTPUT | jq -c '.[]')
 do
     # Assign variables for this entry
@@ -84,8 +89,8 @@ do
 
     # If the correct devfile is not matched throw error
     if [ "$found_matching" == "0" ]; then
-        # nodejs-mongodb similar to nodejs
-        if [[ "$repo" == "https://github.com/che-samples/nodejs-mongodb-sample" && "$selected_devfile_name" == "nodejs" ]]; then
+        # ignore error on similar devfiles
+        if [[ "${IGNORED_SIMILAR_DEVFILES[$repo]}" == "$selected_devfile_name" ]]; then
             echo "[WARNING] $repo matched with $selected_devfile_name instead of $devfile. Will not raise error."
         else
             let ENTRIES_FAILED++
